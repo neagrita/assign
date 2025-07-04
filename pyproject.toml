@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "ddg-home-assignment"
+version = "0.1.0"
+description = ""
+authors = ["Agrita Garnizone <a.garnizone@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+[tool.poetry.group.eda.dependencies]
+pandas = "^2.3.0"
+sweetviz = "^2.3.1"
+numpy = "^2.3.1"
+scikit-learn = "^1.7.0"
+
+
+[tool.poetry.group.dev.dependencies]
+jupyter = "^1.1.1"
+notebook = "^7.4.4"
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
