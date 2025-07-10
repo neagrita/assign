@@ -6,8 +6,10 @@ import fasttext
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import TruncatedSVD
+from urllib.parse import unquote
 
-from helpers import parse_url_params_simple
+
+from helpers import parse_url_params_simple, get_url_parts, entropy_scipy
 
 # === CONFIG ===
 RANDOM_STATE = 42
@@ -102,16 +104,9 @@ class FeatureTransformation:
         """
         Transform the input dataframe.
         """
-        # Step 0: Unnest data
         df_transformed = self._clean_data(df)
-
-        # Step 1: One-hot encode categorical features
         df_transformed = self._encode_categorical_features(df_transformed, categorical_columns=self.CATEGORICAL_COLUMNS)
-
-        # Step 2: Drop constant columns
         df_transformed = self._drop_constant_columns(df_transformed)
-
-        # Step 3: One-hot encode categorical features with missing values
         df_transformed = self._encode_categorical_features(
             df_transformed,
             categorical_columns=self.SPARSE_COLUMNS_TO_ENCODE,
@@ -119,22 +114,13 @@ class FeatureTransformation:
             missing_values=True,
             values_to_missing=self.FAKE_NULLS_TO_NAN
         )
-
-        # Step 4: Combine sparse features
         df_transformed = self._combine_sparse_features(df_transformed)
-        
-        # Step 5: Process time-to-click: log and bin
         df_transformed = self._process_ttc(df_transformed)
-
-        # Step 6: Process country code
         df_transformed = self._process_country_code(df_transformed)
-
-        # Step 7: Process locale code
         df_transformed = self._process_locale_code(df_transformed)
-
+        df_transformed = self._extract_domain_features(df_transformed)
+        df_transformed = self._process_query(df_transformed)
         return df_transformed
-
-
 
     def _clean_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -170,7 +156,7 @@ class FeatureTransformation:
         if missing_values:
             kwargs['dummy_na'] = True
         if values_to_missing:
-            df[categorical_columns] = df[categorical_columns].replace(values_to_missing, np.nan)
+            df.loc[:, categorical_columns] = df[categorical_columns].replace(values_to_missing, np.nan)
 
         return pd.get_dummies(df, columns=categorical_columns, **kwargs)
 
@@ -250,6 +236,68 @@ class FeatureTransformation:
 
         df = pd.concat([df, kl_df['lang_freq']], axis=1)
         return df.drop(columns=['kl'])
+
+    def _extract_domain_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Extract domain features.
+        """
+        # extract domain, subdomain, and extension from the url
+        domain_df = df['d'].str.lower().apply(get_url_parts).apply(pd.Series)
+        
+        # simple domain features
+        domain_df['domain_length'] = domain_df['domain'].str.len()
+        domain_df['domain_entropy'] = domain_df['domain'].apply(entropy_scipy)
+        domain_df['domain_digit_ratio'] = domain_df['domain'].str.count(r'\d').div(domain_df['domain'].str.len())
+
+        # embeddings via fasttext
+        domain_embeddings = domain_df['domain'].fillna('').apply(lambda x: self.fasttext_model.get_word_vector(x))
+        domain_matrix = np.vstack(domain_embeddings.values) 
+        domain_embedding_df = pd.DataFrame(domain_matrix, index=domain_df.index) 
+        domain_embedding_df.columns = [f'domain_ft_dim_{i}' for i in range(domain_embedding_df.shape[1])]
+
+        # simple subdomain features
+        domain_df['has_subdomain'] = ~domain_df['subdomain'].isna()
+        domain_df['subdomain_entropy'] = domain_df['subdomain'].apply(entropy_scipy)
+
+        # extension features
+        domain_df['extension_more_than_one'] = domain_df['extension'].str.count('\\.') > 0
+        domain_df['extension_entropy'] = domain_df['extension'].apply(entropy_scipy)
+
+        domain_df['has_country_tld'] = domain_df['extension'].str.split(".").apply(
+            lambda x: any(elem in COUNTRY_CODES for elem in x)
+        )
+
+        return pd.concat(
+            [
+                df.drop('d', axis=1), 
+                domain_df.drop(['domain', 'subdomain', 'extension'], axis=1), 
+                domain_embedding_df
+            ], 
+            axis=1
+        )
+
+    def _process_query(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Process query.
+        """
+        q_df = pd.DataFrame(index=df.index)
+        # decode query
+        q_df['q_decoded'] = df['q'].apply(lambda x: unquote(x) if pd.notna(x) else x)
+
+        # length and entropy of the query
+        q_df['q_length'] = q_df['q_decoded'].str.len()
+        q_df['q_entropy'] = q_df['q_decoded'].apply(entropy_scipy)
+        q_df['q_word_count'] = q_df['q_decoded'].str.split().apply(len)
+
+        # everything but letters and speces, e.g., digits, punctuation, etc.
+        q_df['q_symbol_ratio'] = q_df['q_decoded'].str.count(r'[^a-zA-Z ]').div(q_df['q_decoded'].str.len())
+
+        # embeddings via fasttext
+        ft_embeddings = q_df['q_decoded'].apply(lambda x: self.fasttext_model.get_word_vector(x))
+        ft_matrix = np.vstack(ft_embeddings.tolist())
+        ft_df = pd.DataFrame(ft_matrix, index=q_df.index) 
+        ft_df.columns = [f'q_ft_dim_{i}' for i in range(ft_df.shape[1])]
+        return pd.concat([df.drop('q', axis=1), q_df,ft_df], axis=1)
 
 if __name__ == "__main__":
     transform = FeatureTransformation()
