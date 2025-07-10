@@ -38,7 +38,20 @@ COUNTRY_CODES= ['AF', 'AX', 'AL', 'DZ', 'AS', 'AD', 'AO', 'AI', 'AQ', 'AG', 'AR'
        'UG', 'UA', 'AE', 'GB', 'US', 'UM', 'UY', 'UZ', 'VU', 'VE', 'VN',
        'VG', 'VI', 'WF', 'EH', 'YE', 'ZM', 'ZW'
 ]
-COUNTRY_CODE_FREQ = pd.Series({"DE": 0.2164631543, "GB": 0.1791478098, "FR": 0.0929041072, "CA": 0.0660917086, "NL": 0.0634446247, "IT": 0.0623345573, "ES": 0.0481598497, "IN": 0.0296302621, "RU": 0.0286055845, "SE": 0.0233114166, "AU": 0.018358808, "AT": 0.0133208095, "MX": 0.0130646401, "BR": 0.0118691828, "UG": 0.011356844, "IE": 0.0092220989, "FI": 0.0072581334, "NO": 0.007001964, "ID": 0.0059772863, "SC": 0.0057211169, "SG": 0.0052941679, "CH": 0.0046964392, "DK": 0.0046964392, "PH": 0.0038425412, "ZA": 0.0036717616, "NZ": 0.0028178635, "PL": 0.0023909145, "RO": 0.0023055247, "AE": 0.0021347451, "JP": 0.0020493553, "TH": 0.0019639655, "HK": 0.0018785757, "BD": 0.0018785757, "BE": 0.0017931859, "KE": 0.0017931859, "CZ": 0.0017931859, "MY": 0.0017077961, "IR": 0.0014516267, "GR": 0.0013662369, "CO": 0.0013662369, "MA": 0.0013662369, "NG": 0.0012808471, "PK": 0.0012808471, "SA": 0.0012808471, "LU": 0.0009392878, "TR": 0.000853898, "PT": 0.000853898, "AL": 0.000853898, "VN": 0.000853898, "KR": 0.000853898, "IL": 0.000853898, "UA": 0.0007685082, "MT": 0.0007685082, "BG": 0.0007685082, "DO": 0.0007685082, "EG": 0.0006831184, "LK": 0.0006831184, "BO": 0.0005977286, "SI": 0.0005977286, "SK": 0.0005977286, "RS": 0.0005977286, "LV": 0.0005977286, "MM": 0.0005977286, "PR": 0.0005123388, "AF": 0.0005123388, "CL": 0.000426949, "GH": 0.000426949, "TZ": 0.000426949, "MN": 0.000426949, "AR": 0.000426949, "CN": 0.000426949, "HR": 0.000426949, "LB": 0.000426949, "QA": 0.000426949, "CY": 0.0003415592, "JO": 0.0003415592, "LA": 0.0003415592, "BA": 0.0003415592, "HU": 0.0003415592, "CM": 0.0003415592, "NP": 0.0003415592, "AG": 0.0003415592, "RE": 0.0002561694, "BS": 0.0002561694, "TT": 0.0002561694, "EE": 0.0002561694, "CW": 0.0002561694, "KH": 0.0002561694, "unknown": 0.0002561694, "TN": 0.0002561694, "KW": 0.0002561694, "GE": 0.0002561694, "TW": 0.0002561694, "OM": 0.0002561694, "GG": 0.0002561694, "SV": 0.0001707796, "PA": 0.0001707796, "HN": 0.0001707796, "ET": 0.0001707796, "GT": 0.0001707796, "MU": 0.0001707796, "VE": 0.0001707796, "KG": 0.0001707796, "EC": 0.0001707796, "BH": 0.0001707796, "MZ": 0.0001707796, "CU": 0.0001707796, "DZ": 0.0001707796, "KZ": 0.0001707796, "MK": 0.0001707796, "BB": 0.0001707796, "JM": 0.0001707796, "GY": 0.0001707796, "AM": 8.53898e-05, "MC": 8.53898e-05, "RW": 8.53898e-05, "MV": 8.53898e-05, "MG": 8.53898e-05, "PE": 8.53898e-05, "VI": 8.53898e-05, "MQ": 8.53898e-05, "BM": 8.53898e-05, "MD": 8.53898e-05, "CR": 8.53898e-05, "LI": 8.53898e-05, "VU": 8.53898e-05, "LR": 8.53898e-05, "GQ": 8.53898e-05, "BF": 8.53898e-05, "BW": 8.53898e-05, "PG": 8.53898e-05, "JE": 8.53898e-05, "IQ": 8.53898e-05, "NI": 8.53898e-05, "MF": 8.53898e-05, "PF": 8.53898e-05, "LT": 8.53898e-05, "SN": 8.53898e-05, "CV": 8.53898e-05, "BT": 8.53898e-05, "ZW": 8.53898e-05, "ZM": 8.53898e-05, "HT": 8.53898e-05})
+COUNTRY_CODE_FREQ = {"DE": 0.2164631543, "GB": 0.1791478098, "FR": 0.0929041072, "CA": 0.0660917086, "NL": 0.0634446247, "IT": 0.0623345573, "ES": 0.0481598497, "IN": 0.0296302621, "RU": 0.0286055845, "SE": 0.0233114166, "AU": 0.018358808, "AT": 0.0133208095, "MX": 0.0130646401, "BR": 0.0118691828, "UG": 0.011356844, "IE": 0.0092220989, "FI": 0.0072581334, "NO": 0.007001964, "ID": 0.0059772863, "SC": 0.0057211169, "SG": 0.0052941679, "CH": 0.0046964392, "DK": 0.0046964392, "PH": 0.0038425412, "ZA": 0.0036717616, "NZ": 0.0028178635, "PL": 0.0023909145, "RO": 0.0023055247, "AE": 0.0021347451, "JP": 0.0020493553, "TH": 0.0019639655, "HK": 0.0018785757, "BD": 0.0018785757, "BE": 0.0017931859, "KE": 0.0017931859, "CZ": 0.0017931859, "MY": 0.0017077961, "IR": 0.0014516267, "GR": 0.0013662369, "CO": 0.0013662369, "MA": 0.0013662369, "NG": 0.0012808471, "PK": 0.0012808471, "SA": 0.0012808471, "LU": 0.0009392878, "TR": 0.000853898, "PT": 0.000853898, "AL": 0.000853898, "VN": 0.000853898, "KR": 0.000853898, "IL": 0.000853898, "UA": 0.0007685082, "MT": 0.0007685082, "BG": 0.0007685082, "DO": 0.0007685082, "EG": 0.0006831184, "LK": 0.0006831184, "BO": 0.0005977286, "SI": 0.0005977286, "SK": 0.0005977286, "RS": 0.0005977286, "LV": 0.0005977286, "MM": 0.0005977286, "PR": 0.0005123388, "AF": 0.0005123388, "CL": 0.000426949, "GH": 0.000426949, "TZ": 0.000426949, "MN": 0.000426949, "AR": 0.000426949, "CN": 0.000426949, "HR": 0.000426949, "LB": 0.000426949, "QA": 0.000426949, "CY": 0.0003415592, "JO": 0.0003415592, "LA": 0.0003415592, "BA": 0.0003415592, "HU": 0.0003415592, "CM": 0.0003415592, "NP": 0.0003415592, "AG": 0.0003415592, "RE": 0.0002561694, "BS": 0.0002561694, "TT": 0.0002561694, "EE": 0.0002561694, "CW": 0.0002561694, "KH": 0.0002561694, "unknown": 0.0002561694, "TN": 0.0002561694, "KW": 0.0002561694, "GE": 0.0002561694, "TW": 0.0002561694, "OM": 0.0002561694, "GG": 0.0002561694, "SV": 0.0001707796, "PA": 0.0001707796, "HN": 0.0001707796, "ET": 0.0001707796, "GT": 0.0001707796, "MU": 0.0001707796, "VE": 0.0001707796, "KG": 0.0001707796, "EC": 0.0001707796, "BH": 0.0001707796, "MZ": 0.0001707796, "CU": 0.0001707796, "DZ": 0.0001707796, "KZ": 0.0001707796, "MK": 0.0001707796, "BB": 0.0001707796, "JM": 0.0001707796, "GY": 0.0001707796, "AM": 8.53898e-05, "MC": 8.53898e-05, "RW": 8.53898e-05, "MV": 8.53898e-05, "MG": 8.53898e-05, "PE": 8.53898e-05, "VI": 8.53898e-05, "MQ": 8.53898e-05, "BM": 8.53898e-05, "MD": 8.53898e-05, "CR": 8.53898e-05, "LI": 8.53898e-05, "VU": 8.53898e-05, "LR": 8.53898e-05, "GQ": 8.53898e-05, "BF": 8.53898e-05, "BW": 8.53898e-05, "PG": 8.53898e-05, "JE": 8.53898e-05, "IQ": 8.53898e-05, "NI": 8.53898e-05, "MF": 8.53898e-05, "PF": 8.53898e-05, "LT": 8.53898e-05, "SN": 8.53898e-05, "CV": 8.53898e-05, "BT": 8.53898e-05, "ZW": 8.53898e-05, "ZM": 8.53898e-05, "HT": 8.53898e-05}
+LANG_LOCALE_FREQ = {'wt': 0.7752540346682606,
+ 'de': 0.0732644522244044,
+ 'en': 0.0523439501323542,
+ 'fr': 0.03159422764921868,
+ 'nl': 0.027153957817436597,
+ 'es': 0.014857825975578515,
+ 'it': 0.008026641618990693,
+ 'sv': 0.006233455725386389,
+ 'no': 0.0040133208094953465,
+ 'da': 0.002476304329263086,
+ 'pt': 0.002476304329263086,
+ 'fi': 0.0014516266757749125,
+ 'zh': 0.0008538980445734779}
 
 class FeatureTransformation:
     """
@@ -58,9 +71,8 @@ class FeatureTransformation:
     # column type transformations
     COLUMNS_TO_INT = ['nt']
 
-    # input columns
     # input columns; expected all as str
-    INPUT_COLUMNS = ['datetime', 'browser', 'device', 'region', 'url']
+    INPUT_COLUMNS = ['datetime', 'browser', 'device', 'region', 'url_params']
 
     def __init__(self, fasttext_model_path: str = "models/cc.en.300.bin", log_level: str = "INFO"):
         """
@@ -94,13 +106,19 @@ class FeatureTransformation:
         df_transformed = self._clean_data(df)
 
         # Step 1: One-hot encode categorical features
-        df_transformed = self._encode_categorical_features(df_transformed)
+        df_transformed = self._encode_categorical_features(df_transformed, categorical_columns=self.CATEGORICAL_COLUMNS)
 
         # Step 2: Drop constant columns
         df_transformed = self._drop_constant_columns(df_transformed)
 
         # Step 3: One-hot encode categorical features with missing values
-        df_transformed = self._encode_categorical_features(df_transformed, drop_first=False, missing_values=True, values_to_missing=self.FAKE_NULLS_TO_NAN)
+        df_transformed = self._encode_categorical_features(
+            df_transformed,
+            categorical_columns=self.SPARSE_COLUMNS_TO_ENCODE,
+            drop_first=False,
+            missing_values=True,
+            values_to_missing=self.FAKE_NULLS_TO_NAN
+        )
 
         # Step 4: Combine sparse features
         df_transformed = self._combine_sparse_features(df_transformed)
@@ -109,6 +127,10 @@ class FeatureTransformation:
         df_transformed = self._process_ttc(df_transformed)
 
         # Step 6: Process country code
+        df_transformed = self._process_country_code(df_transformed)
+
+        # Step 7: Process locale code
+        df_transformed = self._process_locale_code(df_transformed)
 
         return df_transformed
 
@@ -120,17 +142,18 @@ class FeatureTransformation:
         """
         df['datetime'] = pd.to_datetime(df['datetime'])
         df.loc[:, 'hour'] = df['datetime'].dt.hour
-        df.loc[:, 'params_dict'] = df['url'].apply(parse_url_params_simple)
+        df.loc[:, 'params_dict'] = df['url_params'].apply(parse_url_params_simple)
         df = df.join(df['params_dict'].apply(pd.Series))
 
         # direct trasnformations
         df[self.COLUMNS_TO_INT] = df[self.COLUMNS_TO_INT].astype(int)
 
-        return df.drop(columns=['url', 'datetime', 'params_dict'])
+        return df.drop(columns=['url_params', 'datetime', 'params_dict'])
 
     def _encode_categorical_features(
         self,
         df: pd.DataFrame,
+        categorical_columns: list[str],
         drop_first: bool = True,
         missing_values: bool = False,
         values_to_missing: Optional[list] = None
@@ -147,10 +170,9 @@ class FeatureTransformation:
         if missing_values:
             kwargs['dummy_na'] = True
         if values_to_missing:
-            df[self.CATEGORICAL_COLUMNS] = df[self.CATEGORICAL_COLUMNS].replace(values_to_missing, np.nan)
+            df[categorical_columns] = df[categorical_columns].replace(values_to_missing, np.nan)
 
-        encoded_df = pd.get_dummies(df, columns=self.CATEGORICAL_COLUMNS, **kwargs)
-        return pd.concat([df.drop(self.CATEGORICAL_COLUMNS, axis=1), encoded_df], axis=1)
+        return pd.get_dummies(df, columns=categorical_columns, **kwargs)
 
     def _drop_constant_columns(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -164,13 +186,14 @@ class FeatureTransformation:
         """
 
         # get sparse features - ensure it's a DataFrame
-        sparse_df = df[self.SPARSE_COLUMNS_TO_ENCODE]
+        sparse_df = df[self.SPARSE_COLUMNS_TO_COMBINE]
         if isinstance(sparse_df, pd.Series):
             sparse_df = sparse_df.to_frame()
         
         # encode sparse features
         sparse_dummies = self._encode_categorical_features(
             sparse_df, 
+            categorical_columns=self.SPARSE_COLUMNS_TO_COMBINE,
             drop_first=False, 
             missing_values=True, 
             values_to_missing=self.FAKE_NULLS_TO_NAN
@@ -204,17 +227,34 @@ class FeatureTransformation:
         """
         Process country code.
         """
-
         is_country = df['ct'].str.upper().fillna('').isin(COUNTRY_CODES)
         if sum(~is_country) > 0:
             df.loc[~is_country, 'ct'] = 'unknown'
 
-        df['ct_freq'] = df['ct'].map(COUNTRY_CODE_FREQ)
-
+        df['ct_freq'] = df['ct'].map(COUNTRY_CODE_FREQ) # type: ignore
         return df.drop(columns=['ct'])
 
+    def _process_locale_code(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Process locale code.
+        """
 
+        kl_df = df['kl'].str.split('-', expand=True)
+        kl_df.columns = ['locale', 'country']
+        
+        # hard-coded fix for data quality
+        kl_df.loc[kl_df['country'] == 'uk', 'country'] = 'gb'
+        kl_df.loc[kl_df['locale'] == 'tzh', 'locale'] = 'zh'
+
+        kl_df['lang_freq'] = kl_df['locale'].map(LANG_LOCALE_FREQ)
+
+        df = pd.concat([df, kl_df['lang_freq']], axis=1)
+        return df.drop(columns=['kl'])
 
 if __name__ == "__main__":
     transform = FeatureTransformation()
+
+    df = pd.read_csv('data/test.csv', sep="\t")
+
+    df_transformed = transform.transform(df)
     print(transform.fasttext_model)
