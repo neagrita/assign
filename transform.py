@@ -9,6 +9,13 @@ from sklearn.decomposition import TruncatedSVD
 
 from helpers import entropy_scipy, get_url_parts, parse_url_params_simple
 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
 # === CONFIG ===
 RANDOM_STATE = 42
 SVD_N_COMPONENTS = 4
@@ -477,11 +484,27 @@ class FeatureTransformation:
         """
         Transform the input dataframe.
         """
+        self.logger.info(
+            f"Starting transformation pipeline with {len(df)} rows and {len(df.columns)} columns"
+        )
+
         df_transformed = self._clean_data(df)
+        self.logger.info(
+            f"After cleaning: {len(df_transformed)} rows and {len(df_transformed.columns)} columns"
+        )
+
         df_transformed = self._encode_categorical_features(
             df_transformed, categorical_columns=self.CATEGORICAL_COLUMNS
         )
+        self.logger.info(
+            f"After categorical encoding: {len(df_transformed)} rows and {len(df_transformed.columns)} columns"
+        )
+
         df_transformed = self._drop_constant_columns(df_transformed)
+        self.logger.info(
+            f"After dropping constant columns: {len(df_transformed)} rows and {len(df_transformed.columns)} columns"
+        )
+
         df_transformed = self._encode_categorical_features(
             df_transformed,
             categorical_columns=self.SPARSE_COLUMNS_TO_ENCODE,
@@ -489,18 +512,43 @@ class FeatureTransformation:
             missing_values=True,
             values_to_missing=self.FAKE_NULLS_TO_NAN,
         )
+        self.logger.info(
+            f"After sparse encoding: {len(df_transformed)} rows and {len(df_transformed.columns)} columns"
+        )
+
         df_transformed = self._combine_sparse_features(df_transformed)
+        self.logger.info(
+            f"After SVD sparse combination: {len(df_transformed)} rows and {len(df_transformed.columns)} columns"
+        )
+
         df_transformed = self._process_ttc(df_transformed)
         df_transformed = self._process_country_code(df_transformed)
         df_transformed = self._process_locale_code(df_transformed)
+
         df_transformed = self._extract_domain_features(df_transformed)
+        self.logger.info(
+            f"After domain feature extraction: {len(df_transformed)} rows and {len(df_transformed.columns)} columns"
+        )
+
         df_transformed = self._process_query(df_transformed)
+        self.logger.info(
+            f"After query processing: {len(df_transformed)} rows and {len(df_transformed.columns)} columns"
+        )
+
+        self.logger.info("Transformation pipeline completed successfully")
         return df_transformed
 
     def _clean_data(self, df: pd.DataFrame) -> pd.DataFrame:
         """
         Unnest ad click url params and extract hour of day.
         """
+        self.logger.debug("Starting data cleaning")
+
+        # Check for missing required columns
+        missing_cols = [col for col in self.INPUT_COLUMNS if col not in df.columns]
+        if missing_cols:
+            self.logger.warning(f"Missing required columns: {missing_cols}")
+
         df["datetime"] = pd.to_datetime(df["datetime"])
         df.loc[:, "hour"] = df["datetime"].dt.hour
         df.loc[:, "params_dict"] = df["url_params"].apply(parse_url_params_simple)
@@ -508,6 +556,13 @@ class FeatureTransformation:
 
         # direct trasnformations
         df[self.COLUMNS_TO_INT] = df[self.COLUMNS_TO_INT].astype(int)
+
+        # Log any parsing issues
+        null_count = df["params_dict"].isna().sum()
+        if null_count > 0:
+            self.logger.warning(
+                f"Found {null_count} rows with unparseable URL parameters"
+            )
 
         return df.drop(columns=["url_params", "datetime", "params_dict"])
 
@@ -532,9 +587,11 @@ class FeatureTransformation:
         if missing_values:
             kwargs["dummy_na"] = True
         if values_to_missing:
-            df.loc[:, categorical_columns] = df[categorical_columns].replace(
-                values_to_missing, np.nan
-            )
+            replacement_dict = {
+                col: {val: np.nan for val in values_to_missing}
+                for col in categorical_columns
+            }
+            df = df.replace(replacement_dict)
 
         return pd.get_dummies(df, columns=categorical_columns, **kwargs)
 
@@ -548,6 +605,9 @@ class FeatureTransformation:
         """
         Combine sparse features with truncated singular value decomposition.
         """
+        self.logger.debug(
+            f"Starting SVD on {len(self.SPARSE_COLUMNS_TO_COMBINE)} sparse columns"
+        )
 
         # get sparse features - ensure it's a DataFrame
         sparse_df = df[self.SPARSE_COLUMNS_TO_COMBINE]
@@ -563,12 +623,20 @@ class FeatureTransformation:
             values_to_missing=self.FAKE_NULLS_TO_NAN,
         )
 
+        self.logger.debug(
+            f"Sparse dummy encoding created {sparse_dummies.shape[1]} features"
+        )
+
         svd = TruncatedSVD(
             n_components=SVD_N_COMPONENTS,
             random_state=RANDOM_STATE,
         )
 
         svd_features = svd.fit_transform(sparse_dummies)
+
+        # Log explained variance
+        explained_variance = svd.explained_variance_ratio_.sum()
+        self.logger.info(f"SVD explained variance: {explained_variance:.3f}")
 
         svd_df = pd.DataFrame(
             svd_features,
@@ -595,7 +663,11 @@ class FeatureTransformation:
         Process country code.
         """
         is_country = df["ct"].str.upper().fillna("").isin(COUNTRY_CODES)
-        if sum(~is_country) > 0:
+        invalid_count = sum(~is_country)
+        if invalid_count > 0:
+            self.logger.warning(
+                f"Found {invalid_count} invalid country codes, replacing with 'unknown'"
+            )
             df.loc[~is_country, "ct"] = "unknown"
 
         df["ct_freq"] = df["ct"].map(COUNTRY_CODE_FREQ)  # type: ignore
@@ -622,6 +694,8 @@ class FeatureTransformation:
         """
         Extract domain features.
         """
+        self.logger.debug("Starting domain feature extraction")
+
         # extract domain, subdomain, and extension from the url
         domain_df = df["d"].str.lower().apply(get_url_parts).apply(pd.Series)
 
@@ -633,16 +707,24 @@ class FeatureTransformation:
         )
 
         # embeddings via fasttext
-        domain_embeddings = (
-            domain_df["domain"]
-            .fillna("")
-            .apply(lambda x: self.fasttext_model.get_word_vector(x))
-        )
-        domain_matrix = np.vstack(domain_embeddings.values)
-        domain_embedding_df = pd.DataFrame(domain_matrix, index=domain_df.index)
-        domain_embedding_df.columns = [
-            f"domain_ft_dim_{i}" for i in range(domain_embedding_df.shape[1])
-        ]
+        self.logger.debug("Computing FastText embeddings for domains")
+        try:
+            domain_embeddings = (
+                domain_df["domain"]
+                .fillna("")
+                .apply(lambda x: self.fasttext_model.get_word_vector(x))
+            )
+            domain_matrix = np.vstack(domain_embeddings.values)
+            domain_embedding_df = pd.DataFrame(domain_matrix, index=domain_df.index)
+            domain_embedding_df.columns = [
+                f"domain_ft_dim_{i}" for i in range(domain_embedding_df.shape[1])
+            ]
+            self.logger.debug(
+                f"Created {domain_embedding_df.shape[1]} domain embedding features"
+            )
+        except Exception as e:
+            self.logger.error(f"Error computing domain embeddings: {e}")
+            raise
 
         # simple subdomain features
         domain_df["has_subdomain"] = ~domain_df["subdomain"].isna()
@@ -673,6 +755,8 @@ class FeatureTransformation:
         """
         Process query.
         """
+        self.logger.debug("Starting query processing")
+
         q_df = pd.DataFrame(index=df.index)
         # decode query
         q_df["q_decoded"] = df["q"].apply(lambda x: unquote(x) if pd.notna(x) else x)
@@ -688,16 +772,17 @@ class FeatureTransformation:
         )
 
         # embeddings via fasttext
-        ft_embeddings = q_df["q_decoded"].apply(
-            lambda x: self.fasttext_model.get_word_vector(x)
-        )
-        ft_matrix = np.vstack(ft_embeddings.tolist())
-        ft_df = pd.DataFrame(ft_matrix, index=q_df.index)
-        ft_df.columns = [f"q_ft_dim_{i}" for i in range(ft_df.shape[1])]
+        self.logger.debug("Computing FastText embeddings for queries")
+        try:
+            ft_embeddings = q_df["q_decoded"].apply(
+                lambda x: self.fasttext_model.get_word_vector(x)
+            )
+            ft_matrix = np.vstack(ft_embeddings.tolist())
+            ft_df = pd.DataFrame(ft_matrix, index=q_df.index)
+            ft_df.columns = [f"q_ft_dim_{i}" for i in range(ft_df.shape[1])]
+            self.logger.debug(f"Created {ft_df.shape[1]} query embedding features")
+        except Exception as e:
+            self.logger.error(f"Error computing query embeddings: {e}")
+            raise
+
         return pd.concat([df.drop("q", axis=1), q_df, ft_df], axis=1)
-
-
-if __name__ == "__main__":
-    df = pd.read_csv("data/train.csv", sep="\t")
-    transform = FeatureTransformation()
-    df_transformed = transform.transform(df)
