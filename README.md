@@ -11,9 +11,13 @@ This project implements an end-to-end anomaly detection system that processes we
 ### Prerequisites
 - Python 3.12
 - Poetry (for dependency management)
-- Download the FastText model to `models/cc.en.300.bin`
-- Ensure the SVD model is available at `models/svd.pkl`
-- Optional: pyenv for virtual environment management
+- FastText Model:
+    - The pipeline requires the English FastText model (`cc.en.300.bin`) to be available at `models/cc.en.300.bin`.
+    - You can download it from the official FastText website: https://fasttext.cc/docs/en/crawl-vectors.html.
+    - After downloading, extract the model into the `models/` directory.
+    - ⚠️ Note: The pipeline includes a fallback to programmatically download this model if it's missing. However, be aware that the file is 7.2 GB, so manual download is recommended.
+- SVD Model – Ensure the `svd.pkl` file is available at `models/svd.pkl`.
+- Optional: `pyenv` - useful for managing Python versions and virtual environments.
 
 ### Setup
 ```bash
@@ -35,16 +39,16 @@ TBD
 
 ## Summary on approach
 
-The challenge was approached by first performing exploratory data analysis (EDA) to understand the structure, distributions, and relationships within the dataset. This was followed by targeted feature engineering - including basic transformations such as entropy measures and frequency encoding, as well as more advanced techniques like dimensionality reduction and character-level embeddings using a [FastText](https://fasttext.cc/) model.
+The challenge was approached through a systematic methodology beginning with exploratory data analysis (EDA) to understand the underlying structure, distributions, and relationships within the dataset. This analysis was followed by comprehensive feature engineering, which included both basic transformations (entropy measures and frequency encoding) and advanced techniques (dimensionality reduction and character-level embeddings using a [FastText](https://fasttext.cc/) model).
 
-Given the lack of labeled data, the Isolation Forest algorithm was selected as a strong baseline for unsupervised anomaly detection, well-suited to identifying outliers in high-dimensional space.
+Given the absence of labeled data, the Isolation Forest algorithm was selected as a robust baseline for unsupervised anomaly detection, as it is well-suited for identifying outliers in high-dimensional feature spaces.
 
 ## Project Structure
 
 ```
 ddg-home-assignment/
 ├── data/                            # All data files
-│   ├── bot-hunter-dataset-top10.tsv     # Sample input file, first 10 observations
+│   ├── sample_input.tsv.tsv             # Sample input file, first 10 observations
 │   ├── output.tsv                       # Classified anomalies
 ├── models/                          # Model files
 │   ├── cc.en.300.bin                    # FastText model (needed for feature engineering)
