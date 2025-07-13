@@ -266,7 +266,7 @@ class FeatureTransformation:
         df["ttc_log"] = np.log1p(df["ttc"].astype(float))
         df["ttc_bucket"] = pd.cut(
             df["ttc"].astype(float), bins=TTC_BINS, labels=TTC_LABELS
-        ).astype(int)
+        ).astype(int)  # type: ignore
         return df.drop(columns=["ttc"])
 
     def _process_country_code(self, df: pd.DataFrame) -> pd.DataFrame:
