@@ -416,3 +416,6 @@ LANG_LOCALE_FREQ = {
     "zh": 0.0008532423208191126,
 }
 COUNTRY_MAPPINGS = {"uk": "gb", "tzh": "zh", "NA": "unknown"}
+
+# Anomaly detection - cut off value for anomaly score
+ANOMALY_SCORE_CUTOFF = 0
