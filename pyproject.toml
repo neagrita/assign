@@ -30,6 +30,8 @@ fasttext = "^0.9.3"
 
 
 [tool.poetry.group.modelling.dependencies]
+kneed = "^0.8.5"
+umap-learn = "^0.5.9.post2"
 shap = "^0.48.0"
 
 [build-system]
