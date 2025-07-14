@@ -13,7 +13,7 @@ from constants import (
     COUNTRY_CODE_FREQ,
     LANG_LOCALE_FREQ,
     TTC_BINS,
-    TTC_LABELS,
+    TTC_LABELS_INTS,
 )
 
 
@@ -265,7 +265,7 @@ class FeatureTransformation:
         """
         df["ttc_log"] = np.log1p(df["ttc"].astype(float))
         df["ttc_bucket"] = pd.cut(
-            df["ttc"].astype(float), bins=TTC_BINS, labels=TTC_LABELS
+            df["ttc"].astype(float), bins=TTC_BINS, labels=TTC_LABELS_INTS
         ).astype(int)  # type: ignore
         return df.drop(columns=["ttc"])
 
