@@ -16,7 +16,7 @@ This project implements an end-to-end anomaly detection system that processes we
     - You can download it from the official FastText website: https://fasttext.cc/docs/en/crawl-vectors.html.
     - After downloading, extract the model into the `models/` directory.
     - ⚠️ Note: The pipeline includes a fallback to programmatically download this model if it's missing. However, be aware that the file is 7.2 GB, so manual download is recommended.
-- SVD Model – Ensure the `svd.pkl` file is available at `models/svd.pkl`.
+- SVD Model – Ensure the `svd.pkl` file is available at `models/svd_model.pkl`.
 - Optional: `pyenv` - useful for managing Python versions and virtual environments.
 
 ### Setup

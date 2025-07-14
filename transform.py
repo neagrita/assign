@@ -48,7 +48,7 @@ class FeatureTransformation:
     def __init__(
         self,
         fasttext_model_path: str = "models/cc.en.300.bin",
-        svd_model_path: str = "models/svd.pkl",
+        svd_model_path: str = "models/svd_model.pkl",
         log_level: str = "INFO",
     ):
         """
