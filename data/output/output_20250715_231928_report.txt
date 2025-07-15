@@ -1,0 +1,10 @@
+Total samples: 5
+Anomalies detected: 0
+Anomaly percentage: 0.00%
+Cutoff used: 0
+
+Anomaly score statistics:
+Mean: 0.1359
+Std: 0.0183
+Min: 0.1081
+Max: 0.1491

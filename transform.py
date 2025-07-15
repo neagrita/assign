@@ -1,21 +1,20 @@
 import logging
+import pickle
 from typing import Optional
 from urllib.parse import unquote
 
 import fasttext
 import numpy as np
 import pandas as pd
-import pickle
 
-from helpers import entropy_scipy, get_url_parts, parse_url_params_simple
 from constants import (
-    COUNTRY_CODES,
     COUNTRY_CODE_FREQ,
+    COUNTRY_CODES,
     LANG_LOCALE_FREQ,
     TTC_BINS,
     TTC_LABELS_INTS,
 )
-
+from helpers import entropy_scipy, get_url_parts, parse_url_params_simple
 
 logging.basicConfig(
     level=logging.INFO,
@@ -47,6 +46,7 @@ class FeatureTransformation:
 
     def __init__(
         self,
+        expected_output_columns: list[str],
         fasttext_model_path: str = "models/cc.en.300.bin",
         svd_model_path: str = "models/svd_model.pkl",
         log_level: str = "INFO",
@@ -67,7 +67,12 @@ class FeatureTransformation:
         try:
             self.fasttext_model = fasttext.load_model(fasttext_model_path)
         except Exception as e:
-            logging.error(f"Error loading FastText model: {e}")
+            logging.error(
+                f"Error loading FastText model: {e}\n\n"
+                "Transformations require the English FastText model (cc.en.300.bin). "
+                "Please download it from https://fasttext.cc/docs/en/crawl-vectors.html, "
+                "and place the file in the 'models' folder as 'cc.en.300.bin'."
+            )
             raise e
 
         # init svd model for sparse features
@@ -76,6 +81,9 @@ class FeatureTransformation:
         except Exception as e:
             logging.error(f"Error loading SVD model: {e}")
             raise e
+
+        # init expected output columns
+        self.expected_output_columns = expected_output_columns
 
         self.logger.info("FeatureTransformation initialized")
 
@@ -141,6 +149,17 @@ class FeatureTransformation:
             f"After query processing: {len(df_transformed)} rows and "
             f"{len(df_transformed.columns)} columns"
         )
+
+        self.logger.info("Checking if all expected columns are present")
+        missing_cols = [
+            col
+            for col in self.expected_output_columns
+            if col not in df_transformed.columns
+        ]
+        if len(missing_cols) > 0:
+            self.logger.warning(f"Missing columns: {missing_cols}")
+            self.logger.info("Correcting missing columns")
+            df_transformed[missing_cols] = 0
 
         self.logger.info("Transformation pipeline completed successfully")
         return df_transformed
@@ -215,7 +234,8 @@ class FeatureTransformation:
         """
         Drop columns that are constant.
         """
-        return df.drop(columns=self.COLUMNS_TO_DROP)
+        columns_to_drop = [col for col in self.COLUMNS_TO_DROP if col in df.columns]
+        return df.drop(columns=columns_to_drop)
 
     def _combine_sparse_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -225,30 +245,61 @@ class FeatureTransformation:
             f"Starting SVD on {len(self.SPARSE_COLUMNS_TO_COMBINE)} sparse columns"
         )
 
+        sparse_columns_missing = [
+            col for col in self.SPARSE_COLUMNS_TO_COMBINE if col not in df.columns
+        ]
+        if len(sparse_columns_missing) > 0:
+            self.logger.warning(f"Missing sparse columns: {sparse_columns_missing}")
+            self.logger.info("Initializing sparse features with missing values")
+            df[sparse_columns_missing] = np.nan
+
         # get sparse features - ensure it's a DataFrame
         sparse_df = df[self.SPARSE_COLUMNS_TO_COMBINE]
         if isinstance(sparse_df, pd.Series):
             sparse_df = sparse_df.to_frame()
 
-        # encode sparse features
-        sparse_dummies = self._encode_categorical_features(
-            sparse_df,
-            categorical_columns=self.SPARSE_COLUMNS_TO_COMBINE,
-            drop_first=False,
-            missing_values=True,
-            values_to_missing=self.FAKE_NULLS_TO_NAN,
-        )
+        try:
+            sparse_dummies = self._encode_categorical_features(
+                sparse_df,
+                categorical_columns=self.SPARSE_COLUMNS_TO_COMBINE,
+                drop_first=False,
+                missing_values=True,
+                values_to_missing=self.FAKE_NULLS_TO_NAN,
+            )
+
+            # if any values are missing, add them here
+            add_cols = list(
+                set(self.svd_model.feature_names_in_) - set(sparse_dummies.columns)
+            )
+            if len(add_cols) > 0:
+                self.logger.warning(f"Adding {len(add_cols)} missing columns")
+                sparse_dummies[add_cols] = 0
+
+            # if any values are new, log that
+            new_cols = list(
+                set(sparse_dummies.columns) - set(self.svd_model.feature_names_in_)
+            )
+            if len(new_cols) > 0:
+                self.logger.warning(f"New values in columns: {new_cols}")
+                sparse_dummies.drop(columns=new_cols, inplace=True)
+
+        except Exception as e:
+            self.logger.warning(f"Error getting sparse dummies: {e}")
+            self.logger.info("Initializing dummies with missing values")
+
+            add_cols = [col + "_NA" for col in self.SPARSE_COLUMNS_TO_COMBINE]
+            sparse_dummies = pd.DataFrame(
+                index=df.index, columns=self.svd_model.feature_names_in_, dtype=int
+            ).fillna(0)
+            sparse_dummies[add_cols] = 1
 
         self.logger.debug(
             f"Sparse dummy encoding created {sparse_dummies.shape[1]} features"
         )
 
-        svd_features = self.svd_model.fit_transform(sparse_dummies)
-
-        # Log explained variance
-        explained_variance = self.svd_model.explained_variance_ratio_.sum()
-        self.logger.info(f"SVD explained variance: {explained_variance:.3f}")
-
+        svd_features = self.svd_model.transform(
+            sparse_dummies[self.svd_model.feature_names_in_]
+        )
         svd_df = pd.DataFrame(
             svd_features,
             columns=[f"sparse_{i}" for i in range(self.svd_model.n_components)],  # type: ignore
@@ -256,7 +307,8 @@ class FeatureTransformation:
         )
 
         return pd.concat(
-            [df.drop(columns=self.SPARSE_COLUMNS_TO_COMBINE, axis=1), svd_df], axis=1
+            [df.drop(columns=self.SPARSE_COLUMNS_TO_COMBINE, axis=1), svd_df],
+            axis=1,
         )
 
     def _process_ttc(self, df: pd.DataFrame) -> pd.DataFrame:

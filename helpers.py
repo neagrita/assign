@@ -86,3 +86,21 @@ def entropy_scipy(s: str) -> float:
     counts = Counter(s)
     probs = np.array(list(counts.values())) / len(s)
     return float(entropy(probs, base=2))
+
+
+def create_report(results: dict) -> str:
+    """
+    Create a report from the results.
+    """
+    report = ""
+    report += f"Total samples: {results['n_total']}\n"
+    report += f"Anomalies detected: {results['n_anomalies']}\n"
+    report += f"Anomaly percentage: {results['anomaly_percentage']:.2f}%\n"
+    report += f"Cutoff used: {results['cutoff_used']}\n"
+    report += "\nAnomaly score statistics:\n"
+    report += f"Mean: {results['mean_score']:.4f}\n"
+    report += f"Std: {results['std_score']:.4f}\n"
+    report += f"Min: {results['min_score']:.4f}\n"
+    report += f"Max: {results['max_score']:.4f}\n"
+
+    return report

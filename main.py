@@ -1,0 +1,88 @@
+import logging
+import os
+from datetime import datetime
+
+import click
+import pandas as pd
+
+from helpers import create_report
+from predict import AnomalyPredictor
+from transform import FeatureTransformation
+
+# for cleaner logging
+pd.set_option("future.no_silent_downcasting", True)
+
+
+@click.command()
+@click.argument("input_file", type=click.Path(exists=True))
+def main(input_file):
+    """
+    Transform, predict, and save anomaly results for the given input file (.tsv).
+
+    Assumes that the input file is a TSV file without header, however contains following
+    columns:
+    - datetime
+    - region
+    - browser
+    - device
+    - url_params
+
+    Output is two files:
+    - a TSV file with the following columns:
+        - is_anomaly
+        - anomaly_score
+        Index is preserved from the input file.
+    - a small txt file with small report on the results.
+    """
+    logging.basicConfig(
+        level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+    )
+    logger = logging.getLogger("main")
+
+    # Prep for output
+    output_dir = os.path.join("data", "output")
+    os.makedirs(output_dir, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_name = f"output_{timestamp}"
+    output_file_name = os.path.join(output_dir, f"{output_name}.tsv")
+    output_report_name = os.path.join(output_dir, f"{output_name}_report.txt")
+
+    # Load input
+    logger.info(f"Loading input file: {input_file}")
+    df = pd.read_csv(
+        input_file,
+        sep="\t",
+        index_col=False,
+        header=None,
+        names=["datetime", "region", "browser", "device", "url_params"],
+    )
+
+    # Transform
+    logger.info("Setting up everything for the pipeline...")
+    predictor = AnomalyPredictor()
+    transformer = FeatureTransformation(
+        expected_output_columns=predictor.model.feature_names_in_
+    )
+
+    logger.info("Running feature transformation...")
+    X = transformer.transform(df)
+
+    # Predict
+    logger.info("Running anomaly prediction...")
+    results = predictor.predict(X)
+    results_df = results["results_df"]
+    results_report = results["statistics"]
+    report_str = create_report(results_report)
+
+    # Save output
+    results_df.to_csv(output_file_name, sep="\t", index=True)
+    logger.info(f"Saved output to {output_file_name}")
+
+    # Save report
+    with open(output_report_name, "w") as f:
+        f.write(report_str)
+    logger.info(f"Saved report to {output_report_name}")
+
+
+if __name__ == "__main__":
+    main()
