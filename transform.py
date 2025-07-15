@@ -7,13 +7,8 @@ import fasttext
 import numpy as np
 import pandas as pd
 
-from constants import (
-    COUNTRY_CODE_FREQ,
-    COUNTRY_CODES,
-    LANG_LOCALE_FREQ,
-    TTC_BINS,
-    TTC_LABELS_INTS,
-)
+from constants import (COUNTRY_CODE_FREQ, COUNTRY_CODES, LANG_LOCALE_FREQ,
+                       TTC_BINS, TTC_LABELS_INTS)
 from helpers import entropy_scipy, get_url_parts, parse_url_params_simple
 
 logging.basicConfig(
@@ -70,7 +65,7 @@ class FeatureTransformation:
             logging.error(
                 f"Error loading FastText model: {e}\n\n"
                 "Transformations require the English FastText model (cc.en.300.bin). "
-                "Please download it from https://fasttext.cc/docs/en/crawl-vectors.html, "
+                "Please download it from https://fasttext.cc/docs/en/crawl-vectors.html,"
                 "and place the file in the 'models' folder as 'cc.en.300.bin'."
             )
             raise e
