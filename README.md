@@ -1,4 +1,4 @@
-# Anomaly Detection Project
+# Unsupervised anomaly detection for web traffic events
 
 A machine learning pipeline for detecting anomalies in web traffic data using Isolation Forest.
 
@@ -24,18 +24,18 @@ This project processes web traffic data, performs feature engineering, and appli
 git clone <repository-url>
 cd ddg-home-assignment
 
-# Install dependencies
+# Install dependencies (minimal setup for running the model)
 poetry install
 
-# Activate virtual environment
-poetry shell
+# OR install all dependencies (including those for notebooks and development)
+poetry install --with eda,dev,modelling
 ```
 
 ## Usage
 
 To run the pipeline on an input file (e.g., `sample_input.tsv`):
 ```
-poetry run python main.py sample_input.tsv
+poetry run python main.py data/sample_input.tsv
 ```
 Output Files:
 * Processed anomalies:
@@ -47,13 +47,23 @@ data/output/output_<timestamp>.tsv
 data/output/output_<timestamp>_report.txt
 ```
 
+## Input Data Requirements
+- File format: TSV (tab-separated values)
+- Expected columns:
+  - `datetime` (string, format: YYYY-MM-DD HH:MM:SS)
+  - `region` (categorical)
+  - `browser` (categorical)
+  - `device` (categorical)
+  - `url_params` (text)
+- The pipeline assumes header row is not present.
+
 ## Summary on approach
 
 The challenge was approached through a systematic methodology beginning with exploratory data analysis (EDA) to understand the underlying structure, distributions, and relationships within the dataset. This analysis was followed by comprehensive feature engineering, which included both basic transformations (entropy measures and frequency encoding) and advanced techniques (dimensionality reduction and character-level embeddings using a [FastText](https://fasttext.cc/) model).
 
 Given the absence of labeled data, the Isolation Forest algorithm was selected as a robust baseline for unsupervised anomaly detection, as it is well-suited for identifying outliers in high-dimensional feature spaces.
 
-KS and PSI checks showed the model generalizes well, and UMAP visualization revealed that anomalies mostly appear at the edges of clusters
+Validation with KS and PSI confirmed stable performance, while UMAP visualization showed anomalies mostly on cluster edges.
 
 ## Project Structure
 

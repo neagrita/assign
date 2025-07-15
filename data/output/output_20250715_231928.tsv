@@ -1,0 +1,6 @@
+	anomaly_score	is_anomaly	is_anomaly_label
+0	0.14856221734409297	False	Normal
+1	0.1261203402249117	False	Normal
+2	0.1477037189324376	False	Normal
+3	0.14905988526810154	False	Normal
+4	0.10813730278623795	False	Normal
