@@ -67,23 +67,21 @@ class AnomalyPredictor:
         anomaly_scores_decision = self.model.decision_function(X)
         is_anomaly = anomaly_scores_decision < self.cutoff
 
-        results_df = X.copy()
-        results_df["anomaly_score"] = anomaly_scores_decision
-        results_df["is_anomaly"] = is_anomaly
-        results_df["anomaly_label"] = results_df["is_anomaly"].replace(
-            {True: "Anomaly", False: "Normal"}
+        results_df = pd.DataFrame(
+            {
+                "anomaly_score": anomaly_scores_decision,
+                "is_anomaly": is_anomaly,
+                "anomaly_label": is_anomaly.replace({True: "Anomaly", False: "Normal"}),
+            },
+            index=X.index,
         )
-
         stats = self._calculate_statistics(results_df)
-
         self.logger.info(
             f"Prediction completed. Anomalies detected: {stats['n_anomalies']}"
         )
-
         return {
+            "input": X,
             "results_df": results_df,
-            "anomaly_scores_decision": anomaly_scores_decision,
-            "is_anomaly": is_anomaly,
             "statistics": stats,
         }
 
