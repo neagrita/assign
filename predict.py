@@ -1,11 +1,11 @@
 import logging
 import pickle
+from typing import Any, Dict
+
 import pandas as pd
-from typing import Dict, Any
 from sklearn.ensemble import IsolationForest
 
 from constants import ANOMALY_SCORE_CUTOFF
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -64,16 +64,17 @@ class AnomalyPredictor:
             Dictionary containing predictions and scores
         """
         self.logger.info(f"Making predictions on {len(X)} samples")
-        anomaly_scores_decision = self.model.decision_function(X)
+        anomaly_scores_decision = self.model.decision_function(
+            X[self.model.feature_names_in_]
+        )
         is_anomaly = anomaly_scores_decision < self.cutoff
 
         results_df = pd.DataFrame(
-            {
-                "anomaly_score": anomaly_scores_decision,
-                "is_anomaly": is_anomaly,
-                "anomaly_label": is_anomaly.replace({True: "Anomaly", False: "Normal"}),
-            },
+            {"anomaly_score": anomaly_scores_decision, "is_anomaly": is_anomaly},
             index=X.index,
+        )
+        results_df["is_anomaly_label"] = results_df["is_anomaly"].replace(
+            {True: "Anomaly", False: "Normal"}
         )
         stats = self._calculate_statistics(results_df)
         self.logger.info(

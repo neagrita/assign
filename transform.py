@@ -1,21 +1,21 @@
 import logging
+import pickle
 from typing import Optional
 from urllib.parse import unquote
 
 import fasttext
 import numpy as np
 import pandas as pd
-import pickle
 
-from helpers import entropy_scipy, get_url_parts, parse_url_params_simple
 from constants import (
-    COUNTRY_CODES,
     COUNTRY_CODE_FREQ,
+    COUNTRY_CODES,
+    ISOLATION_FOREST_EXPECTED_COLUMNS,
     LANG_LOCALE_FREQ,
     TTC_BINS,
     TTC_LABELS_INTS,
-    ISOLATION_FOREST_EXPECTED_COLUMNS,
 )
+from helpers import entropy_scipy, get_url_parts, parse_url_params_simple
 
 
 logging.basicConfig(
@@ -69,7 +69,12 @@ class FeatureTransformation:
         try:
             self.fasttext_model = fasttext.load_model(fasttext_model_path)
         except Exception as e:
-            logging.error(f"Error loading FastText model: {e}")
+            logging.error(
+                f"Error loading FastText model: {e}\n\n"
+                "Transformations require the English FastText model (cc.en.300.bin). "
+                "Please download it from https://fasttext.cc/docs/en/crawl-vectors.html, "
+                "and place the file in the 'models' folder as 'cc.en.300.bin'."
+            )
             raise e
 
         # init svd model for sparse features
@@ -146,6 +151,17 @@ class FeatureTransformation:
             f"After query processing: {len(df_transformed)} rows and "
             f"{len(df_transformed.columns)} columns"
         )
+
+        self.logger.info("Checking if all expected columns are present")
+        missing_cols = [
+            col
+            for col in self.expected_output_columns
+            if col not in df_transformed.columns
+        ]
+        if len(missing_cols) > 0:
+            self.logger.warning(f"Missing columns: {missing_cols}")
+            self.logger.info("Correcting missing columns")
+            df_transformed[missing_cols] = 0
 
         self.logger.info("Transformation pipeline completed successfully")
         return df_transformed
@@ -272,6 +288,12 @@ class FeatureTransformation:
         except Exception as e:
             self.logger.warning(f"Error getting sparse dummies: {e}")
             self.logger.info("Initializing dummies with missing values")
+
+            add_cols = [col + "_NA" for col in self.SPARSE_COLUMNS_TO_COMBINE]
+            sparse_dummies = pd.DataFrame(
+                index=df.index, columns=self.svd_model.feature_names_in_, dtype=int
+            ).fillna(0)
+            sparse_dummies[add_cols] = 1
 
         self.logger.debug(
             f"Sparse dummy encoding created {sparse_dummies.shape[1]} features"

@@ -1,12 +1,16 @@
-import os
 import logging
-import click
-import pandas as pd
+import os
 from datetime import datetime
 
-from transform import FeatureTransformation
+import click
+import pandas as pd
+
+from helpers import create_report
 from predict import AnomalyPredictor
-from constants import ISOLATION_FOREST_EXPECTED_COLUMNS
+from transform import FeatureTransformation
+
+
+pd.set_option("future.no_silent_downcasting", True)
 
 
 # @click.command()
@@ -65,22 +69,18 @@ def main(input_file):
     logger.info("Running anomaly prediction...")
     results = predictor.predict(X)
     results_df = results["results_df"]
-    results_report = results["report"]
-
-    # Merge results with original input columns for output
-    output_df = pd.concat(
-        [df.reset_index(drop=True), results_df.reset_index(drop=True)], axis=1
-    )
+    results_report = results["statistics"]
+    report_str = create_report(results_report)
 
     # Save output
-    output_df.to_csv(output_file_name, sep="\t", index=False)
+    results_df.to_csv(output_file_name, sep="\t", index=True)
     logger.info(f"Saved output to {output_file_name}")
 
     # Save report
     with open(output_report_name, "w") as f:
-        f.write(results_report)
+        f.write(report_str)
     logger.info(f"Saved report to {output_report_name}")
 
 
 if __name__ == "__main__":
-    main("data/bot-hunter-dataset.tsv")
+    main("data/sample_input.tsv")
