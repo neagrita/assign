@@ -22,7 +22,7 @@ class AnomalyPredictor:
 
     def __init__(
         self,
-        model_path: str = "models/anomaly_detection_model.pkl",
+        model_path: str = "models/iso_forest.pkl",
         cutoff: float = ANOMALY_SCORE_CUTOFF,
     ):
         """
