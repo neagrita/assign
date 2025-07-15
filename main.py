@@ -9,12 +9,12 @@ from helpers import create_report
 from predict import AnomalyPredictor
 from transform import FeatureTransformation
 
-
+# for cleaner logging
 pd.set_option("future.no_silent_downcasting", True)
 
 
-# @click.command()
-# @click.argument("input_file", type=click.Path(exists=True))
+@click.command()
+@click.argument("input_file", type=click.Path(exists=True))
 def main(input_file):
     """
     Transform, predict, and save anomaly results for the given input file (.tsv).
@@ -58,14 +58,16 @@ def main(input_file):
     )
 
     # Transform
-    logger.info("Setting up feature transformation...")
-    transformer = FeatureTransformation()
+    logger.info("Setting up everything for the pipeline...")
+    predictor = AnomalyPredictor()
+    transformer = FeatureTransformation(
+        expected_output_columns=predictor.model.feature_names_in_
+    )
+
     logger.info("Running feature transformation...")
     X = transformer.transform(df)
 
     # Predict
-    logger.info("Setting up anomaly prediction...")
-    predictor = AnomalyPredictor()
     logger.info("Running anomaly prediction...")
     results = predictor.predict(X)
     results_df = results["results_df"]
@@ -83,4 +85,4 @@ def main(input_file):
 
 
 if __name__ == "__main__":
-    main("data/sample_input.tsv")
+    main()

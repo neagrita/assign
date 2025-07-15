@@ -10,13 +10,11 @@ import pandas as pd
 from constants import (
     COUNTRY_CODE_FREQ,
     COUNTRY_CODES,
-    ISOLATION_FOREST_EXPECTED_COLUMNS,
     LANG_LOCALE_FREQ,
     TTC_BINS,
     TTC_LABELS_INTS,
 )
 from helpers import entropy_scipy, get_url_parts, parse_url_params_simple
-
 
 logging.basicConfig(
     level=logging.INFO,
@@ -48,10 +46,10 @@ class FeatureTransformation:
 
     def __init__(
         self,
+        expected_output_columns: list[str],
         fasttext_model_path: str = "models/cc.en.300.bin",
         svd_model_path: str = "models/svd_model.pkl",
         log_level: str = "INFO",
-        expected_output_columns: list[str] = ISOLATION_FOREST_EXPECTED_COLUMNS,
     ):
         """
         Initialize the pipeline.
