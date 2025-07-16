@@ -22,7 +22,7 @@ This project processes web traffic data, performs feature engineering, and appli
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd ddg-home-assignment
+cd assign
 
 # Install dependencies (minimal setup for running the model)
 poetry install
