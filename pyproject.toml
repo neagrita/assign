@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "ddg-home-assignment"
+name = "assign"
 version = "0.1.0"
 description = ""
-authors = ["Agrita Garnizone <a.garnizone@gmail.com>"]
+authors = ["neagrita"]
 readme = "README.md"
 
 [tool.poetry.dependencies]

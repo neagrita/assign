@@ -68,7 +68,7 @@ Validation with KS and PSI confirmed stable performance, while UMAP visualizatio
 ## Project Structure
 
 ```
-ddg-home-assignment/
+assign/
 ├── data/                    
 │   ├── sample_input.tsv                # Sample input data
 │   ├── output/                         # Generated outputs
